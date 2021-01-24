@@ -1,7 +1,7 @@
 <template>
   <div class="feature-list-item card">
     <header class="card-header">
-      <p class="card-header-title">
+      <p class="card-header-title" :style="{ backgroundColor, color }">
         {{ feature.WorkItemId }}
       </p>
     </header>
@@ -21,6 +21,8 @@ import { useGetters } from '@/store/useStore'
 import { computed, defineComponent, PropType } from 'vue'
 import { WorkItem } from '../entities/WorkItem.interface'
 import { AzureService } from '../service/azure.service'
+import { getRandomColor } from '@/services/randomColor'
+import { yiq } from 'yiq'
 
 export default defineComponent({
   name: 'Home',
@@ -35,9 +37,19 @@ export default defineComponent({
         ? azureService.getWorkItemURL(props.feature.WorkItemId)
         : null
     })
+    const backgroundColor = computed(() => {
+      return props.feature.WorkItemId
+        ? getRandomColor(props.feature.WorkItemId)
+        : null
+    })
+    const color = computed(() => {
+      return backgroundColor.value ? yiq(backgroundColor.value) : '#000000'
+    })
 
     return {
-      url
+      url,
+      backgroundColor,
+      color
     }
   }
 })

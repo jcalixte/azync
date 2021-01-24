@@ -21,7 +21,8 @@
     "vue-i18n": "^9.0.0-beta.6",
     "vue-router": "^4.0.0-rc.2",
     "vuex": "^4.0.0-rc.1",
-    "vuex-persist": "^3.1.3"
+    "vuex-persist": "^3.1.3",
+    "yiq": "^4.0.0"
   },
   "devDependencies": {
     "@types/jest": "^26.0.15",
