@@ -1,6 +1,6 @@
 <template>
   <footer class="footer-translation">
-    <button class="button" @click="toggleLanguage">
+    <button class="button is-primary" @click="toggleLanguage">
       {{ t('toggle-lang') }}
     </button>
   </footer>

@@ -1,4 +1,4 @@
-const mainColor = '#3f4fa6'
+const mainColor = '#7ed6df'
 
 module.exports = {
   pwa: {
@@ -8,7 +8,7 @@ module.exports = {
       skipWaiting: true,
       clientsClaim: true
     },
-    name: '',
+    name: 'Azync',
     manifestOptions: {
       background_color: mainColor,
       theme_color: mainColor,
