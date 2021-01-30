@@ -1,6 +1,11 @@
 <template>
   <div id="app">
     <h1 class="title is-1">Zync</h1>
+    <nav>
+      <router-link to="/">
+        <img src="./assets/bold.svg" alt="home" />
+      </router-link>
+    </nav>
     <auth-hero />
     <router-view />
   </div>
@@ -18,4 +23,22 @@ export default defineComponent({
 
 <style lang="scss">
 @import 'styles/app';
+
+.app {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 100vh;
+}
+
+nav {
+  margin-top: 1rem;
+}
+
+main {
+  display: flex;
+  flex: 1;
+  align-items: center;
+}
 </style>

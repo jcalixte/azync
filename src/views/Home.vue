@@ -1,21 +1,17 @@
 <template>
-  <div class="home columns">
-    <div class="column">
-      <feature-list />
-    </div>
-    <div class="column"></div>
-    <div class="column"></div>
+  <div class="home">
+    <release-candidate />
   </div>
 </template>
 
 <script lang="ts">
-import FeatureList from '@/modules/azure/components/FeatureList.vue'
+import ReleaseCandidate from '@/modules/release/components/ReleaseCandidate.vue'
 import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'Home',
   components: {
-    FeatureList
+    ReleaseCandidate
   }
 })
 </script>

@@ -2,6 +2,7 @@ import PouchDb from 'pouchdb-browser'
 import { Model } from './models/Model'
 import indexedDb from 'pouchdb-adapter-indexeddb'
 import { DataType } from './DataType.enum'
+import shortid from 'shortid'
 
 PouchDb.plugin(indexedDb)
 
@@ -64,6 +65,10 @@ class Data {
     })
 
     return response.rows.map((row) => row.doc) as T[]
+  }
+
+  public newId() {
+    return shortid()
   }
 }
 

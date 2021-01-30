@@ -1,1 +1,3 @@
-export enum DataType {}
+export enum DataType {
+  ReleaseCandidate = 'release-candidate'
+}

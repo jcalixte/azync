@@ -1,74 +1,125 @@
+import { AzureAuth } from '@/modules/azure/entities/AzureAuth.interface'
+import { Iteration } from '@/modules/azure/entities/Iteration.interface'
+import { WorkItem } from '@/modules/azure/entities/WorkItem.interface'
+import { WorkItemType } from '@/modules/azure/enums/WorkItemType.enum'
 import { query } from '@/services/api'
-import { AzureAuth } from '../entities/AzureAuth.interface'
-import { WorkItem } from '../entities/WorkItem.interface'
-import { WorkItemType } from '../enums/WorkItemType.enum'
 
 export class AzureService {
   private selectKeys: Array<keyof WorkItem> = [
     'WorkItemId',
     'CompletedDate',
-    'CompletedDateSK',
+    'WorkItemType',
     'State',
     'Title',
     'RemainingWork',
     'Effort',
-    'Custom_Bacrouge',
     'IterationSK',
-    'ParentWorkItemId',
-    'Reason',
-    'Watermark'
+    'ParentWorkItemId'
   ]
+
+  private get token() {
+    return Buffer.from(`:${this.azureAuth.token}`).toString('base64')
+  }
 
   constructor(private readonly azureAuth: AzureAuth) {}
 
-  getAzureURL(type?: WorkItemType) {
+  baseURL(entity: string) {
     const { organisation, project } = this.azureAuth
-    const keys = this.selectKeys.join(',')
 
-    const url = new URL(
-      `https://analytics.dev.azure.com/${organisation}/${project}/_odata/v2.0/WorkItems`
+    return new URL(
+      `https://analytics.dev.azure.com/${organisation}/${project}/_odata/v2.0/${entity}`
     )
+  }
+
+  getWorkItemsURL(iterationSK: string, type?: WorkItemType) {
+    const url = this.baseURL('WorkItems')
+    const keys = this.selectKeys.join(',')
     url.searchParams.append('$select', keys)
     if (type) {
       url.searchParams.append(
         '$filter',
-        `WorkItemType eq '${type}' and State ne 'Done'`
+        `WorkItemType eq '${type}' and IterationSK eq ${iterationSK}`
       )
+    } else {
+      url.searchParams.append('$filter', `IterationSK eq ${iterationSK}`)
     }
 
     return url.toString()
   }
 
-  async getWorkItems(type?: WorkItemType) {
-    const azureAPIToken = Buffer.from(`:${this.azureAuth.token}`).toString(
-      'base64'
-    )
+  getIterationsURL() {
+    const url = this.baseURL('Iterations')
 
+    return url.toString()
+  }
+
+  async getWorkItems(iterationSK: string, type?: WorkItemType) {
     const result = await query<{ value: WorkItem[] }>(
-      this.getAzureURL(type),
-      azureAPIToken
+      this.getWorkItemsURL(iterationSK, type),
+      this.token
     )
 
     return result?.value ?? []
   }
 
-  async getFeatureItems() {
-    return await this.getWorkItems(WorkItemType.Feature)
+  async getFeatureItems(iterationSK: string) {
+    return await this.getWorkItems(iterationSK, WorkItemType.Feature)
   }
 
-  async getBacklogItems() {
-    return await this.getWorkItems(WorkItemType.ProductBacklogItem)
+  async getBacklogItems(iterationSK: string) {
+    return await this.getWorkItems(iterationSK, WorkItemType.ProductBacklogItem)
   }
 
-  async getTaskItems() {
-    return await this.getWorkItems(WorkItemType.Task)
+  async getTaskItems(iterationSK: string) {
+    return await this.getWorkItems(iterationSK, WorkItemType.Task)
   }
 
-  async getBugItems() {
-    return await this.getWorkItems(WorkItemType.Bug)
+  async getBugItems(iterationSK: string) {
+    return await this.getWorkItems(iterationSK, WorkItemType.Bug)
   }
 
-  public getWorkItemURL(workItemId: number) {
+  getWorkItemURL(workItemId: number) {
     return `https://dev.azure.com/${this.azureAuth.organisation}/${this.azureAuth.project}/_workitems/edit/${workItemId}`
+  }
+
+  async getIterations() {
+    const result = await query<{ value: Iteration[] }>(
+      this.getIterationsURL(),
+      this.token
+    )
+
+    return result?.value ?? []
+  }
+
+  groupByType(workItems: WorkItem[]) {
+    const types = workItems.reduce((t, workItem) => {
+      if (!workItem.WorkItemType) {
+        return t
+      }
+      if (!t[workItem.WorkItemType]) {
+        t[workItem.WorkItemType] = [workItem]
+      } else {
+        t[workItem.WorkItemType].push(workItem)
+      }
+      return t
+    }, {} as Record<WorkItemType, WorkItem[]>)
+
+    return types
+  }
+
+  groupByParentId(workItems: WorkItem[]) {
+    const tree = workItems.reduce((t, workItem) => {
+      if (!workItem.ParentWorkItemId) {
+        return t
+      }
+      if (!t[workItem.ParentWorkItemId]) {
+        t[workItem.ParentWorkItemId] = [workItem]
+      } else {
+        t[workItem.ParentWorkItemId].push(workItem)
+      }
+      return t
+    }, {} as { [key: number]: WorkItem[] })
+
+    return tree
   }
 }
