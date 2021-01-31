@@ -1,6 +1,8 @@
 <template>
   <div class="task-item">
-    <a :href="workItemUrl" target="_blank">{{ task.Title }}</a>
+    <a :href="workItemUrl" target="_blank">
+      #{{ task.WorkItemId }} - {{ task.Title }}
+    </a>
     <img v-if="task.CompletedDate" src="@/assets/check.svg" alt="task done" />
     <img
       v-if="inProgress"

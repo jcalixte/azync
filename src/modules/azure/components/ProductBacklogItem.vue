@@ -1,20 +1,29 @@
 <template>
-  <div class="product-backlog-item">
-    <h5 class="subtitle is-5">
-      <a :href="workItemUrl" target="_blank">{{ item.Title }}</a>
-      <img
-        v-if="item.CompletedDate"
-        src="@/assets/check.svg"
-        alt="product backlog item done"
-      />
-    </h5>
-    <div>
-      <task-item
-        class="task-item"
-        v-for="child in children"
-        :key="child.WorkItemId"
-        :task="child"
-      />
+  <div class="product-backlog-item card">
+    <header class="card-header">
+      <div class="card-header-title">
+        <h5 class="subtitle is-5">
+          <a :href="workItemUrl" target="_blank">
+            #{{ item.WorkItemId }} -
+            {{ item.Title }}
+          </a>
+          <img
+            v-if="item.CompletedDate"
+            src="@/assets/check.svg"
+            alt="product backlog item done"
+          />
+        </h5>
+      </div>
+    </header>
+    <div class="card-content" v-if="hasChildren">
+      <div class="content">
+        <task-item
+          class="task-item"
+          v-for="child in children"
+          :key="child.WorkItemId"
+          :task="child"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -42,7 +51,10 @@ export default defineComponent({
       props.item.WorkItemId ? workItemTree.value[props.item.WorkItemId] : []
     )
 
+    const hasChildren = computed(() => !!children.value?.length ?? false)
+
     return {
+      hasChildren,
       children,
       workItemUrl
     }
@@ -52,6 +64,11 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .product-backlog-item {
+  &.card {
+    box-shadow: none;
+    background-color: #f5f6fa;
+  }
+
   h5 {
     display: flex;
     align-items: center;

@@ -16,6 +16,7 @@
     <div class="card-content">
       <div class="content">
         <product-backlog-item
+          class="block"
           v-for="child in children"
           :key="child.WorkItemId"
           :item="child"

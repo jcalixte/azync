@@ -43,7 +43,7 @@
         <h4 class="subtitle is-4">Features</h4>
         <div class="columns is-multiline">
           <div
-            class="column is-one-third"
+            class="column"
             v-for="feature in groupedWorkItems[WorkItemType.Feature]"
             :key="feature.WorkItemId"
           >
