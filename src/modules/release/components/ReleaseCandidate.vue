@@ -3,21 +3,22 @@
     <div class="columns">
       <div class="column">
         <h4 class="subtitle is-4">Itération</h4>
-        <select
-          name="selected-iteration"
-          id="selected-iteration"
-          class="select"
-          v-model="selectedIteration"
-        >
-          <option value=""></option>
-          <option
-            :value="iteration.IterationSK"
-            v-for="iteration in iterations"
-            :key="iteration.IterationId"
+        <div class="select">
+          <select
+            name="selected-iteration"
+            id="selected-iteration"
+            v-model="selectedIteration"
           >
-            {{ iteration.IterationName }}
-          </option>
-        </select>
+            <option value=""></option>
+            <option
+              :value="iteration.IterationSK"
+              v-for="iteration in iterations"
+              :key="iteration.IterationId"
+            >
+              {{ iteration.IterationName }}
+            </option>
+          </select>
+        </div>
       </div>
       <div class="column">
         <h4 class="subtitle is-4" v-if="releaseCandidate">
@@ -29,18 +30,21 @@
             }}
           </span>
         </h4>
+        <div class="notification is-danger" v-if="hasIterationChanged">
+          Iteration changed!
+        </div>
         <button class="button is-primary" @click="createReleaseCandidate">
           create a new release
         </button>
       </div>
     </div>
-    <div class="columns" v-if="selectedIteration && workItems">
-      <div class="column" v-if="workItems[WorkItemType.Feature]">
+    <div class="columns" v-if="selectedIteration && groupedWorkItems">
+      <div class="column" v-if="groupedWorkItems[WorkItemType.Feature]">
         <h4 class="subtitle is-4">Features</h4>
-        <div class="columns">
+        <div class="columns is-multiline">
           <div
-            class="column"
-            v-for="feature in workItems[WorkItemType.Feature]"
+            class="column is-one-third"
+            v-for="feature in groupedWorkItems[WorkItemType.Feature]"
             :key="feature.WorkItemId"
           >
             <feature-list-item
@@ -55,15 +59,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, watch } from 'vue'
+import { computed, defineComponent, onMounted, ref, watch } from 'vue'
 import { useGetters } from '@/store/useStore'
 import { ReleaseCandidate } from '@/data/models/ReleaseCandidate'
 import { Iteration } from '@/modules/azure/entities/Iteration.interface'
 import { AzureService } from '@/modules/azure/service/azure.service'
-import { WorkItem } from '@/modules/azure/entities/WorkItem.interface'
 import { releaseCandidateService } from '@/modules/release/services/releaseCandidate.service'
 import FeatureListItem from '@/modules/azure/components/FeatureListItem.vue'
 import { WorkItemType } from '@/modules/azure/enums/WorkItemType.enum'
+import { useReleaseCandidate } from '@/modules/release/hooks/useReleaseCandidate'
 
 export default defineComponent({
   name: 'ReleaseCandidate',
@@ -75,7 +79,12 @@ export default defineComponent({
     const iterations = ref<Iteration[]>([])
     const selectedIteration = ref<string>('')
     const releaseCandidate = ref<ReleaseCandidate | null>(null)
-    const workItems = ref<Record<WorkItemType, WorkItem[]> | null>(null)
+    const {
+      workItems,
+      groupedWorkItems,
+      clearWorkItems,
+      updateWorkItems
+    } = useReleaseCandidate()
 
     const getIteration = () => {
       return (
@@ -96,13 +105,13 @@ export default defineComponent({
         return
       }
       const azureService = new AzureService(azure.value)
-      const items = await azureService.getWorkItems(selectedIteration.value)
+      updateWorkItems(await azureService.getWorkItems(selectedIteration.value))
 
       releaseCandidate.value = await releaseCandidateService.new({
         iteration: selectedIteration.value,
         version: iteration.IterationName,
         endDate: iteration.EndDate,
-        entityIds: items
+        entityIds: workItems
           .map((item) => item.WorkItemId ?? 0)
           .filter((id) => id !== 0)
       })
@@ -117,6 +126,7 @@ export default defineComponent({
         (it) => it.IterationSK === selectedIteration.value
       )
       if (iteration) {
+        clearWorkItems()
         releaseCandidate.value = await releaseCandidateService.getLatestReleaseCandidate(
           iteration.IterationName
         )
@@ -125,18 +135,33 @@ export default defineComponent({
       if (releaseCandidate.value) {
         const azureService = new AzureService(azure.value)
 
-        const items = await azureService.getWorkItems(selectedIteration.value)
-        workItems.value = releaseCandidateService.groupByType(items)
+        updateWorkItems(
+          await azureService.getWorkItems(selectedIteration.value)
+        )
       }
+    })
+
+    const hasIterationChanged = computed(() => {
+      if (!releaseCandidate.value || !workItems.length) {
+        return false
+      }
+
+      const hasChanged = releaseCandidateService.hasIterationChanged(
+        workItems,
+        releaseCandidate.value.entityIds
+      )
+
+      return hasChanged
     })
 
     return {
       iterations,
       selectedIteration,
-      workItems,
+      groupedWorkItems,
       createReleaseCandidate,
       releaseCandidate,
-      WorkItemType
+      WorkItemType,
+      hasIterationChanged
     }
   }
 })

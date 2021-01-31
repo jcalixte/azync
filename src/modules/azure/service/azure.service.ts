@@ -13,7 +13,6 @@ export class AzureService {
     'Title',
     'RemainingWork',
     'Effort',
-    'IterationSK',
     'ParentWorkItemId'
   ]
 

@@ -2,13 +2,13 @@ import { WorkItemType } from '../enums/WorkItemType.enum'
 
 export interface WorkItem {
   WorkItemId?: number
-  InProgressDate?: Date
-  CompletedDate?: Date
+  InProgressDate?: string
+  CompletedDate?: string
   LeadTimeDays?: number
   CycleTimeDays?: number
   InProgressDateSK?: number
   CompletedDateSK?: number
-  AnalyticsUpdatedDate?: Date
+  AnalyticsUpdatedDate?: string
   ProjectSK?: string
   WorkItemRevisionSK?: number
   AreaSK?: string
@@ -29,9 +29,9 @@ export interface WorkItem {
   Watermark?: number
   Title?: string
   WorkItemType?: WorkItemType
-  ChangedDate?: Date
-  CreatedDate?: Date
-  State?: string
+  ChangedDate?: string
+  CreatedDate?: string
+  State?: WorkItemState
   Reason?: string
   FoundIn?: null
   IntegrationBuild?: null
@@ -39,7 +39,7 @@ export interface WorkItem {
   Activity?: null
   BacklogPriority?: number
   BusinessValue?: null
-  ClosedDate?: Date
+  ClosedDate?: string
   Issue?: null
   Priority?: number
   Rating?: null
@@ -61,7 +61,7 @@ export interface WorkItem {
   AutomatedTestStorage?: null
   AutomatedTestType?: null
   AutomationStatus?: null
-  StateChangeDate?: Date
+  StateChangeDate?: string
   Count?: number
   CommentCount?: number
   Custom_Bacrouge?: null
